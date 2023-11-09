@@ -89,4 +89,69 @@ describe('migrations', () => {
       await knex.destroy();
     },
   );
+
+  it.each(databases.eachSupportedId())(
+    '20231009201211_add_incrementing_pk, %p',
+    async databaseId => {
+      const knex = await databases.init(databaseId);
+
+      const content = Buffer.from('010101010101010101');
+      const one = databaseId.match(/POSTGRES/) ? '1' : 1;
+      const two = databaseId.match(/POSTGRES/) ? '2' : 2;
+
+      await migrateUntilBefore(knex, '20231009201211_add_incrementing_pk.js');
+
+      await knex('static_assets_cache').insert({
+        path: '/foo/bar',
+        content: content,
+      });
+
+      await migrateUpOnce(knex);
+
+      await knex('static_assets_cache').insert({
+        path: '/another/path',
+        content: content,
+      });
+
+      await expect(knex('static_assets_cache')).resolves.toEqual([
+        {
+          id: one,
+          path: '/foo/bar',
+          content: content,
+          last_modified_at: expect.anything(),
+        },
+        {
+          id: two,
+          path: '/another/path',
+          content: content,
+          last_modified_at: expect.anything(),
+        },
+      ]);
+
+      // Assert uniqueness constraint applies
+      await expect(
+        knex('static_assets_cache').insert({
+          path: '/foo/bar',
+          content: 'whatever',
+        }),
+      ).rejects.toBeDefined();
+
+      await migrateDownOnce(knex);
+
+      await expect(knex('static_assets_cache')).resolves.toEqual([
+        {
+          path: '/foo/bar',
+          content: content,
+          last_modified_at: expect.anything(),
+        },
+        {
+          path: '/another/path',
+          content: content,
+          last_modified_at: expect.anything(),
+        },
+      ]);
+
+      await knex.destroy();
+    },
+  );
 });
