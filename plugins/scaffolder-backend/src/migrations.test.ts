@@ -171,4 +171,75 @@ describe('migrations', () => {
       await knex.destroy();
     },
   );
+
+  it.each(databases.eachSupportedId())(
+    '20220129100000_created_by, %p',
+    async databaseId => {
+      const knex = await databases.init(databaseId);
+
+      await migrateUntilBefore(knex, '20220129100000_created_by.js');
+      await migrateUpOnce(knex);
+
+      const uuid = crypto.randomUUID();
+      const uuid2 = crypto.randomUUID();
+      const now = knex.fn.now();
+
+      await knex('tasks').insert({
+        id: uuid,
+        spec: 'spec',
+        status: 'status',
+        last_heartbeat_at: now,
+      });
+
+      await knex('tasks').insert({
+        id: uuid2,
+        spec: 'spec',
+        status: 'status',
+        last_heartbeat_at: now,
+        created_by: 'Samothes',
+      });
+
+      await expect(knex('tasks').where('id', uuid).first()).resolves.toEqual({
+        id: uuid,
+        spec: 'spec',
+        status: 'status',
+        created_at: expect.anything(),
+        last_heartbeat_at: expect.anything(),
+        secrets: null,
+        created_by: null,
+      });
+
+      await expect(knex('tasks').where('id', uuid2).first()).resolves.toEqual({
+        id: uuid2,
+        spec: 'spec',
+        status: 'status',
+        created_at: expect.anything(),
+        last_heartbeat_at: expect.anything(),
+        secrets: null,
+        created_by: 'Samothes',
+      });
+
+      await migrateDownOnce(knex);
+
+      await expect(knex('tasks').where('id', uuid).first()).resolves.toEqual({
+        id: uuid,
+        spec: 'spec',
+        status: 'status',
+        created_at: expect.anything(),
+        last_heartbeat_at: expect.anything(),
+        secrets: null,
+      });
+
+      await expect(knex('tasks').where('id', uuid2).first()).resolves.toEqual({
+        id: uuid2,
+        spec: 'spec',
+        status: 'status',
+        created_at: expect.anything(),
+        last_heartbeat_at: expect.anything(),
+        secrets: null,
+      });
+
+      await knex.destroy();
+    },
+  );
 });
