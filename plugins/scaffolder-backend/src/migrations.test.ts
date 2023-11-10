@@ -242,4 +242,55 @@ describe('migrations', () => {
       await knex.destroy();
     },
   );
+
+  it.each(databases.eachSupportedId())(
+    '20231103165900_text, %p',
+    async databaseId => {
+      const knex = await databases.init(databaseId);
+
+      await migrateUntilBefore(knex, '20231103165900_text.js');
+      await migrateUpOnce(knex);
+
+      const uuid = crypto.randomUUID();
+      const now = knex.fn.now();
+
+      await knex('tasks').insert({
+        id: uuid,
+        spec: 'spec',
+        status: 'status',
+        last_heartbeat_at: now,
+      });
+
+      await expect(
+        knex('task_events').insert({
+          task_id: uuid,
+          body: 'a'.repeat(65_535 + 1),
+          event_type: 'event_type',
+        }),
+      ).resolves.toBeDefined();
+
+      await migrateDownOnce(knex);
+
+      /* eslint-disable jest/no-conditional-expect */
+      if (knex.client.config.client.includes('mysql')) {
+        // Truncate any existing bodies that don't fit
+        await expect(
+          knex('task_events').first().select('body'),
+        ).resolves.toEqual({
+          body: 'a'.repeat(65_535),
+        });
+
+        await expect(
+          knex('task_events').insert({
+            task_id: uuid,
+            body: 'a'.repeat(65_535 + 1),
+            event_type: 'event_type',
+          }),
+        ).rejects.toBeDefined();
+      }
+      /* eslint-enable jest/no-conditional-expect */
+
+      await knex.destroy();
+    },
+  );
 });
