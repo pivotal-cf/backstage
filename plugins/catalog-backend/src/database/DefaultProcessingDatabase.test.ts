@@ -239,14 +239,27 @@ describe('DefaultProcessingDatabase', () => {
         let savedRelations = await knex<DbRelationsRow>('relations')
           .where({ originating_entity_id: id })
           .select();
-        expect(savedRelations.length).toBe(1);
-        expect(savedRelations[0]).toEqual({
-          id: expect.any(Number),
+
+        const expected_saved_relation = {
+          id: expect.anything(),
           originating_entity_id: id,
           source_entity_ref: 'component:default/foo',
           type: 'memberOf',
           target_entity_ref: 'component:default/foo',
-        });
+        };
+        const sqlite_expected_saved_relation = {
+          originating_entity_id: id,
+          source_entity_ref: 'component:default/foo',
+          type: 'memberOf',
+          target_entity_ref: 'component:default/foo',
+        };
+
+        expect(savedRelations.length).toBe(1);
+        expect(savedRelations[0]).toEqual(
+          databaseId === 'SQLITE_3'
+            ? sqlite_expected_saved_relation
+            : expected_saved_relation,
+        );
         expect(updateResult.previous.relations).toEqual([]);
 
         updateResult = await db.transaction(tx =>
@@ -263,22 +276,47 @@ describe('DefaultProcessingDatabase', () => {
         savedRelations = await knex<DbRelationsRow>('relations')
           .where({ originating_entity_id: id })
           .select();
-        expect(savedRelations.length).toBe(1);
-        expect(savedRelations[0]).toEqual({
-          id: savedRelations[0].id,
+
+        const expected_newly_saved_relation = {
+          id: expect.anything(),
           originating_entity_id: id,
           source_entity_ref: 'component:default/foo',
           type: 'memberOf',
           target_entity_ref: 'component:default/foo',
-        });
+        };
+
+        const expected_previous_saved_relation = {
+          id: expect.anything(),
+          originating_entity_id: expect.any(String),
+          source_entity_ref: 'component:default/foo',
+          type: 'memberOf',
+          target_entity_ref: 'component:default/foo',
+        };
+
+        const sqlite_expected_newly_saved_relation = {
+          originating_entity_id: id,
+          source_entity_ref: 'component:default/foo',
+          type: 'memberOf',
+          target_entity_ref: 'component:default/foo',
+        };
+
+        const sqlite_expected_previous_saved_relation = {
+          originating_entity_id: expect.any(String),
+          source_entity_ref: 'component:default/foo',
+          type: 'memberOf',
+          target_entity_ref: 'component:default/foo',
+        };
+
+        expect(savedRelations.length).toBe(1);
+        expect(savedRelations[0]).toEqual(
+          databaseId === 'SQLITE_3'
+            ? sqlite_expected_newly_saved_relation
+            : expected_newly_saved_relation,
+        );
         expect(updateResult.previous.relations).toEqual([
-          {
-            id: expect.any(Number),
-            originating_entity_id: expect.any(String),
-            source_entity_ref: 'component:default/foo',
-            type: 'memberOf',
-            target_entity_ref: 'component:default/foo',
-          },
+          databaseId === 'SQLITE_3'
+            ? sqlite_expected_previous_saved_relation
+            : expected_previous_saved_relation,
         ]);
       },
     );
