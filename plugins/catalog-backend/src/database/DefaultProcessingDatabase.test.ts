@@ -254,12 +254,15 @@ describe('DefaultProcessingDatabase', () => {
           target_entity_ref: 'component:default/foo',
         };
 
+        let expected_relation;
+        if (databaseId === 'SQLITE_3') {
+          expected_relation = sqlite_expected_saved_relation;
+        } else {
+          expected_relation = expected_saved_relation;
+        }
+
         expect(savedRelations.length).toBe(1);
-        expect(savedRelations[0]).toEqual(
-          databaseId === 'SQLITE_3'
-            ? sqlite_expected_saved_relation
-            : expected_saved_relation,
-        );
+        expect(savedRelations[0]).toEqual(expected_relation);
         expect(updateResult.previous.relations).toEqual([]);
 
         updateResult = await db.transaction(tx =>
@@ -307,16 +310,19 @@ describe('DefaultProcessingDatabase', () => {
           target_entity_ref: 'component:default/foo',
         };
 
-        expect(savedRelations.length).toBe(1);
-        expect(savedRelations[0]).toEqual(
-          databaseId === 'SQLITE_3'
-            ? sqlite_expected_newly_saved_relation
-            : expected_newly_saved_relation,
-        );
+        let expected_new_relation;
+        let expected_previous_relation;
+        if (databaseId === 'SQLITE_3') {
+          expected_new_relation = sqlite_expected_newly_saved_relation;
+          expected_previous_relation = sqlite_expected_previous_saved_relation;
+        } else {
+          expected_new_relation = expected_newly_saved_relation;
+          expected_previous_relation = expected_previous_saved_relation;
+        }
+
+        expect(savedRelations[0]).toEqual(expected_new_relation);
         expect(updateResult.previous.relations).toEqual([
-          databaseId === 'SQLITE_3'
-            ? sqlite_expected_previous_saved_relation
-            : expected_previous_saved_relation,
+          expected_previous_relation,
         ]);
       },
     );
@@ -713,6 +719,7 @@ describe('DefaultProcessingDatabase', () => {
 
   describe('listParents', () => {
     let nextId = 1;
+
     function makeEntity(ref: string) {
       return {
         entity_id: String(nextId++),
