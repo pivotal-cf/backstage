@@ -11,6 +11,14 @@
 
 FROM harbor-repo.vmware.com/dockerhub-proxy-cache/library/node:18-bookworm-slim
 
+# Install sqlite3 dependencies. You can skip this if you don't use sqlite3 in the image,
+# in which case you should also move better-sqlite3 to "devDependencies" in package.json.
+# Additionally, we install dependencies for `techdocs.generator.runIn: local`.
+# https://backstage.io/docs/features/techdocs/getting-started#disabling-docker-in-docker-situation-optional
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3 python3-pip python3-venv && \
+    yarn config set python /usr/bin/python3
+
 # Set up a virtual environment for mkdocs-techdocs-core.
 ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV
