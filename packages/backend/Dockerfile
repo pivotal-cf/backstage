@@ -35,6 +35,9 @@ USER node
 # This switches many Node.js dependencies to production mode.
 ENV NODE_ENV production
 
+RUN ls -lsa
+RUN pwd
+
 # Copy over Yarn 3 configuration, release, and plugins
 COPY --chown=node:node .yarn/ ./.yarn/
 COPY --chown=node:node .yarnrc.yml ./
