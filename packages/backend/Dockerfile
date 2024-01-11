@@ -36,7 +36,7 @@ USER node
 ENV NODE_ENV production
 
 # Copy over Yarn 3 configuration, release, and plugins
-COPY --chown=node:node .yarn ./.yarn
+COPY --chown=node:node .yarn/ ./.yarn/
 COPY --chown=node:node .yarnrc.yml ./
 
 # Copy repo skeleton first, to avoid unnecessary docker cache invalidation.
