@@ -42,6 +42,8 @@ RUN pwd
 COPY --chown=node:node .yarn/ ./.yarn/
 COPY --chown=node:node .yarnrc.yml ./
 
+RUN yarn build:backend
+
 # Copy repo skeleton first, to avoid unnecessary docker cache invalidation.
 # The skeleton contains the package.json of each package in the monorepo,
 # and along with yarn.lock and the root package.json, that's enough to run yarn install.
