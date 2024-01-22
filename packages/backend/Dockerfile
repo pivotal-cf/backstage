@@ -26,6 +26,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN pip3 install mkdocs-techdocs-core==1.1.7
 
+RUN yarn build:backend
+
 # From here on we use the least-privileged `node` user to run the backend.
 WORKDIR /app
 RUN chown node:node /app
@@ -41,8 +43,6 @@ RUN pwd
 # Copy over Yarn 3 configuration, release, and plugins
 COPY --chown=node:node .yarn/ ./.yarn/
 COPY --chown=node:node .yarnrc.yml ./
-
-RUN yarn build:backend
 
 # Copy repo skeleton first, to avoid unnecessary docker cache invalidation.
 # The skeleton contains the package.json of each package in the monorepo,
