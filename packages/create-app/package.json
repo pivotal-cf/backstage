@@ -20,7 +20,8 @@
   "license": "Apache-2.0",
   "main": "dist/index.cjs.js",
   "bin": {
-    "backstage-create-app": "bin/backstage-create-app"
+    "backstage-create-app": "bin/backstage-create-app",
+    "backstage-create-app-non-interactive": "bin/backstage-create-app-non-interactive"
   },
   "scripts": {
     "build": "backstage-cli package build",

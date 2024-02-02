@@ -25,6 +25,7 @@ import { exitWithError } from './lib/errors';
 // eslint-disable-next-line @backstage/no-relative-monorepo-imports
 import { version } from '../../../package.json';
 import createApp from './createApp';
+import createAppNonInteractive from './createAppNonInteractive';
 
 const main = (argv: string[]) => {
   program
@@ -44,6 +45,25 @@ const main = (argv: string[]) => {
       'Use an external application template instead of the default template',
     )
     .action(cmd => createApp(cmd));
+
+  program
+    .name('backstage-create-app-non-interactive')
+    .version(version)
+    .description('Creates a new app in a new directory or specified path')
+    .option(
+      '--path [directory]',
+      'Location to store the app defaulting to a new folder with the app name',
+    )
+    .option(
+      '--skip-install',
+      'Skip the install and builds steps after creating the app',
+    )
+    .option(
+      '--template-path [directory]',
+      'Use an external application template instead of the default template',
+    )
+    .option('--name', 'Name of the app', 'Portal')
+    .action(cmd => createAppNonInteractive(cmd));
 
   program.parse(argv);
 };
