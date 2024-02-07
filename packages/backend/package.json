@@ -82,7 +82,6 @@
     "@opentelemetry/api": "^1.4.1",
     "@opentelemetry/exporter-prometheus": "^0.45.0",
     "@opentelemetry/sdk-metrics": "^1.13.0",
-    "app": "^0.1.0",
     "azure-devops-node-api": "^11.0.1",
     "dockerode": "^3.3.1",
     "example-app": "link:../app-next",
