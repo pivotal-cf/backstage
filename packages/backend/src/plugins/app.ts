@@ -25,6 +25,6 @@ export default async function createPlugin(
     logger: env.logger,
     config: env.config,
     database: env.database,
-    appPackageName: 'example-app',
+    appPackageName: 'example-app-next',
   });
 }
